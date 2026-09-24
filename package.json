@@ -1,0 +1,23 @@
+{
+	"name": "g4pl-monorepo",
+	"version": "1.0.0",
+	"private": true,
+	"author": "Tomáš Bordák",
+	"license": "Apache-2.0",
+	"description": "",
+	"workspaces": [
+		"apps/*",
+		"shared/*"
+	],
+	"scripts": {
+		"dev:ui": "pnpm run --filter @g4pl/hub dev",
+		"build:ui": "NODE_OPTIONS='--max-old-space-size=1600' pnpm run --filter @g4pl/hub build",
+		"prisma:seed": "docker exec -it g4pl-backend pnpm exec prisma db seed",
+		"prisma:migrate": "docker exec -it g4pl-backend pnpm exec prisma migrate dev --schema=../../shared/prisma/schema.prisma --name",
+		"prisma:apply": "docker exec -it g4pl-backend pnpm exec prisma migrate deploy --schema=../../shared/prisma/schema.prisma",
+		"prisma:generate": "docker exec -it g4pl-backend pnpm exec prisma generate --schema=../../shared/prisma/schema.prisma",
+		"prisma:studio": "pnpm --filter @g4pl/backend studio",
+		"start": "docker compose -f prod.docker-compose.yml up --build -d",
+		"stop": "docker compose down"
+	}
+}

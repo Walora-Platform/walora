@@ -1,0 +1,18 @@
+node_modules
+dist
+generated
+uploads
+certbot
+
+.DS_Store
+.vscode
+.idea
+.pnpm-debug.log
+*.log
+
+# env files - never commit real values, .env.example is the template
+.env
+.env.*
+!.env.example
+
+billing-test*

@@ -1,0 +1,458 @@
+/**
+ * Copyright 2025-2026 Tomáš Bordák
+ * Licensed under the Apache License, Version 2.0.
+ * See the LICENSE file in the project root for details.
+ */
+
+generator client_backend {
+  provider = "prisma-client"
+  output   = "../../apps/backend/src/config/generated/prisma-client"
+}
+
+generator client_worker {
+  provider = "prisma-client"
+  output   = "../../apps/worker_bullmq/src/config/generated/prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/**
+ * MODELS
+ */
+model User {
+  id           String @id @default(uuid(7))
+  username     String @unique
+  email        String
+  firstName    String
+  lastName     String
+  passwordHash String
+  role         Role
+
+  customerCompany   CustomerCompany? @relation(fields: [customerCompanyId], references: [id], onDelete: Restrict)
+  customerCompanyId String?
+
+  receiveNotificationsVia ReceiveNotificationSettings @default(SYSTEM)
+
+  createdAt DateTime @default(now())
+
+  permissions   UserPermission[]
+  notifications UserNotification[]
+  tariffs       Tariff[]
+}
+
+enum ReceiveNotificationSettings {
+  SYSTEM
+  EMAIL
+  BOTH
+}
+
+model Notification {
+  id      String           @id @default(uuid(7))
+  message String
+  type    NotificationType
+
+  createdAt DateTime           @default(now())
+  users     UserNotification[]
+}
+
+enum NotificationType {
+  BILLING
+}
+
+model UserNotification {
+  notificationId String
+  notification   Notification @relation(fields: [notificationId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([notificationId, userId])
+}
+
+model CustomerCompany {
+  id   String @id @default(uuid(7))
+  name String
+  code String @unique
+
+  billingDayOfMonth Int? // 1-15 (used with MONTHLY_DAY)
+  billingMode       BillingMode @default(NONE)
+  billingEmail      String?
+
+  createdAt DateTime @default(now())
+
+  users           User[]
+  parcels         Parcel[]
+  customerApiKeys CustomerApiKey[]
+  tariffs         TariffSubject[]
+  billingBatches  BillingBatch[]
+}
+
+enum BillingMode {
+  NONE
+  MONTHLY_DAY // requires also billingDayOfMonth to be set
+  MONTH_END
+  AFTER_EACH
+}
+
+model BillingBatch {
+  id String @id @default(uuid(7))
+
+  customerCompanyId String
+  customerCompany   CustomerCompany @relation(fields: [customerCompanyId], references: [id])
+
+  tariffId String?
+  tariff   Tariff? @relation(fields: [tariffId], references: [id], onDelete: Restrict)
+
+  periodFrom DateTime @db.Date
+  periodTo   DateTime @db.Date
+
+  totalPrice        Decimal
+  totalPalletSpaces Decimal
+
+  totalParcels Int
+  totalPallets Int
+
+  status        BillingBatchStatus @default(DRAFT)
+  invoiceNumber String?
+
+  createdAt   DateTime  @default(now())
+  finalizedAt DateTime?
+
+  errorCode BillingBatchErrorCode?
+  hasErrors Boolean                @default(false)
+
+  billingItems BillingItem[]
+
+  @@index([customerCompanyId])
+}
+
+enum BillingBatchStatus {
+  DRAFT
+  FINALIZED
+}
+
+enum BillingBatchErrorCode {
+  TARIFF_NOT_FOUND
+}
+
+enum BillingItemErrorCode {
+  ZONE_NOT_FOUND
+  RATE_NOT_FOUND
+}
+
+model BillingItem {
+  id String @id @default(uuid(7))
+
+  billingBatchId String
+  billingBatch   BillingBatch @relation(fields: [billingBatchId], references: [id])
+
+  zoneLabel   String?
+  deliveryPsc String
+
+  palletsSum      Int
+  palletSpacesSum Decimal
+  pricePerPallet  Decimal? // price per pallet space
+
+  tariffPrice          Decimal
+  finalPrice           Decimal
+  finalPriceOverridden Boolean @default(false)
+
+  errorCode BillingItemErrorCode?
+
+  parcels Parcel[]
+}
+
+model CustomerApiKey {
+  id String @id @default(uuid(7))
+
+  customerId String
+  customer   CustomerCompany @relation(fields: [customerId], references: [id])
+
+  keyPrefix String @unique
+  keyHash   String
+
+  version ApiKeyVersion
+  active  Boolean       @default(true)
+
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+enum ApiKeyVersion {
+  v1
+}
+
+model Permission {
+  id        String          @id @default(uuid(7))
+  key       String          @unique
+  scope     PermissionScope
+  createdAt DateTime        @default(now())
+
+  users UserPermission[]
+}
+
+model UserPermission {
+  permission   Permission @relation(fields: [permissionId], references: [id])
+  permissionId String
+  user         User       @relation(fields: [userId], references: [id])
+  userId       String
+
+  @@id([userId, permissionId])
+}
+
+enum Role {
+  PROVIDER_USER
+  PROVIDER_ADMIN
+  CUSTOMER_USER
+  CUSTOMER_ADMIN
+  ADMIN
+}
+
+enum PermissionScope {
+  PROVIDER
+  CUSTOMER
+  ADMIN
+}
+
+model Parcel {
+  id           String @id @default(uuid(7))
+  sequenceNum  Int
+  customerCode String
+
+  customerId String?
+  customer   CustomerCompany? @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  selectedCarrierId String?
+  selectedCarrier   Carrier? @relation(fields: [selectedCarrierId], references: [id], onDelete: Restrict)
+
+  billOfLadingNum String?
+  payer           String?
+  reference       String?
+  problem         Boolean @default(false)
+  note            String?
+
+  status ParcelStatus @default(RECEIVED)
+  type   String?
+
+  palletsCount      Int?
+  palletSpacesCount Decimal?
+  weight            Decimal?
+  volume            Decimal?
+  temperatureMode   String?
+
+  cashOnDeliveryAmount      Decimal?
+  cashOnDeliveryCurrency    String?   @db.Char(3)
+  cashOnDeliveryPaidOutDate DateTime? @db.Date // date when COD amount was paid out to customer
+
+  pickupDate          DateTime? @db.Date
+  pickupTimeFrom      String?
+  pickupTimeTo        String?
+  pickupName          String
+  pickupStreetAddress String
+  pickupCity          String
+  pickupPsc           String // !! PSC can not be Integer, because some PSC start with 0 and as Integer it would omit the leading zeros (099 11 -> 9911)
+  pickupState         String
+  pickupContactName   String?
+  pickupContactPhone  String?
+
+  deliveryDate          DateTime? @db.Date
+  deliveryTimeFrom      String?
+  deliveryTimeTo        String?
+  deliveryName          String
+  deliveryStreetAddress String
+  deliveryCity          String
+  deliveryPsc           String // !! PSC can not be Integer, because some PSC start with 0 and as Integer it would omit the leading zeros (099 11 -> 9911)
+  deliveryState         String
+  deliveryContactName   String?
+  deliveryContactPhone  String?
+  deliveryNote          String?
+
+  createdAt DateTime @default(now()) // order datetime
+
+  billOfLadingAttachmentStatus BillOfLadingAttachmentStatus?
+  documents                    Document[]
+
+  billingItemId        String?
+  billingItem          BillingItem? @relation(fields: [billingItemId], references: [id], onDelete: Restrict)
+  invoicedExternallyAt DateTime? // parcel invoiced externally
+
+  @@unique([customerId, sequenceNum], name: "uniqueParcelCustomerSequenceNum")
+  @@index([customerId])
+  @@index([createdAt])
+  @@index([pickupDate])
+  @@index([deliveryDate])
+  @@index([billOfLadingNum])
+  @@index([reference])
+  @@index([deliveryCity])
+  @@index([deliveryName])
+  @@index([problem])
+  @@index([billingItemId])
+}
+
+model Document {
+  id           String       @id @default(uuid(7))
+  path         String
+  originalName String
+  type         DocumentType @default(UNKNOWN)
+  createdAt    DateTime     @default(now())
+
+  parcel   Parcel @relation(fields: [parcelId], references: [id])
+  parcelId String
+}
+
+enum DocumentType {
+  UNKNOWN
+  UNCONFIRMED_BILL_OF_LADING
+  CONFIRMED_BILL_OF_LADING
+}
+
+enum BillOfLadingAttachmentStatus {
+  UNCONFIRMED_BILL_OF_LADING_NOT_ATTACHED_IN_TIME // if BOL is not attached till midnight on order date
+  UNCONFIRMED_BILL_OF_LADING_ATTACHED // orange status -> unconfirmed BOL before pickup
+  CONFIRMED_BILL_OF_LADING_ATTACHED // green status -> confirmed BOL from delivery
+}
+
+enum ParcelStatus {
+  RECEIVED // přijato
+  PLANNED // naplanovano
+  LOADED // naloženo
+  DELIVERED // doručeno
+  CLOSED // uzavřeno
+  CANCELLED // zrušeno
+}
+
+model Carrier {
+  id           String  @id @default(uuid(7))
+  name         String  @unique
+  raalCode     String?
+  mobileNumber String?
+  email        String?
+  notes        String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  tariffs TariffSubject[] // many-to-many with Tariff through TariffSubject table
+  parcels Parcel[]
+}
+
+model Tariff {
+  id          String            @id @default(uuid(7))
+  name        String            @unique
+  purpose     TariffPurpose // COST | REVENUE
+  structure   TariffStructure // ALL_IN_ONE | SPLIT
+  calculation TariffCalculation // PALLET | WEIGHT
+
+  status    TariffStatus
+  validFrom DateTime     @db.Date
+  validTo   DateTime?    @db.Date
+
+  filename     String
+  originalName String
+
+  createdAt   DateTime @default(now())
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  updatedAt   DateTime @updatedAt
+
+  parts          TariffPart[]
+  tariffSubjects TariffSubject[] // many-to-many either with Carriers or Customers
+  billingBatches BillingBatch[]
+
+  @@index([status, validFrom, validTo])
+}
+
+model TariffSubject {
+  id   String            @id @default(uuid(7))
+  type TariffSubjectType
+
+  tariffId String
+  tariff   Tariff @relation(fields: [tariffId], references: [id], onDelete: Cascade)
+
+  customerCompany   CustomerCompany? @relation(fields: [customerCompanyId], references: [id], onDelete: Restrict)
+  customerCompanyId String?
+
+  carrier   Carrier? @relation(fields: [carrierId], references: [id], onDelete: Restrict)
+  carrierId String?
+}
+
+enum TariffSubjectType {
+  CARRIER
+  CUSTOMER
+}
+
+model TariffPart {
+  id       String         @id @default(uuid(7))
+  partType TariffPartType
+
+  tariff   Tariff @relation(fields: [tariffId], references: [id], onDelete: Cascade)
+  tariffId String
+
+  zones Zone[]
+}
+
+model Zone {
+  id    String @id @default(uuid(7))
+  label String // user custom label (in xlsx)
+
+  tariffPart   TariffPart @relation(fields: [tariffPartId], references: [id], onDelete: Cascade)
+  tariffPartId String
+
+  ranges ZoneRange[]
+  rates  ZoneRate[]
+
+  @@index([tariffPartId])
+}
+
+model ZoneRange {
+  id String @id @default(uuid(7))
+
+  start String // PSC zone start
+  end   String // PSC zone end
+
+  zone   Zone   @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  zoneId String
+
+  @@index([start, end])
+  @@index([zoneId])
+}
+
+model ZoneRate {
+  id String @id @default(uuid(7))
+
+  fromValue Int // pallets | weight (in kilograms)
+  toValue   Int // pallets | weight (in kilograms)
+  price     Decimal
+
+  zone   Zone   @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  zoneId String
+}
+
+enum TariffPurpose {
+  COST // carriers tarrifs
+  REVENUE // customers tariffs
+}
+
+enum TariffStructure {
+  ALL_IN_ONE // contains 1 part
+  SPLIT // contains 2 parts
+}
+
+enum TariffCalculation {
+  PALLET // price for one pallet at a given shipment pallet count
+  WEIGHT // price for one pallet at a given pallet weight (kilogram based)  
+}
+
+enum TariffStatus {
+  ACTIVE
+  WAITING
+  ARCHIVED
+  INACTIVE
+}
+
+enum TariffPartType {
+  ALL_IN_ONE // for all-in-one tariffs -> the tariff will be linked to just one TariffPart
+  PICKUP // for split tariffs -> the tariff will be linked to TWO TariffPart(s) -> this is the PICKUP (svoz) part
+  DELIVER // for split tariffs -> this is the DELIVER (rozvoz) part
+}

@@ -1,0 +1,14 @@
+packages:
+  - "apps/*"
+
+allowBuilds:
+  '@prisma/engines': true
+  '@scarf/scarf': true
+  bcrypt: true
+  esbuild: true
+  maplibre-gl: true
+  msgpackr-extract: true
+  prisma: true
+
+onlyBuiltDependencies:
+  - esbuild

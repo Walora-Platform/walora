@@ -1,0 +1,42 @@
+{
+	"name": "@g4pl/backend",
+	"version": "1.0.0",
+	"author": "Tomáš Bordák",
+	"license": "Apache-2.0",
+	"private": true,
+	"main": "dist/index.js",
+	"scripts": {
+		"dev": "tsx --watch-path=./src ./src/index.ts",
+		"build": "tsc -p tsconfig.json",
+		"start": "node dist/index.js",
+		"studio": "prisma studio",
+		"script": "docker exec -it g4pl-backend pnpm run",
+		"import:historical": "tsx scripts/importHistoricalParcels.ts"
+	},
+	"type": "module",
+	"packageManager": "pnpm@10.19.0",
+	"dependencies": {
+		"@prisma/adapter-pg": "^7.9.0",
+		"@prisma/client": "^7.9.0",
+		"bcrypt": "^6.0.0",
+		"bullmq": "^5.80.10",
+		"cookie-parser": "^1.4.7",
+		"exceljs": "^4.4.0",
+		"express": "^5.2.1",
+		"ioredis": "^5.11.1",
+		"jsonwebtoken": "^9.0.3",
+		"multer": "^2.2.0",
+		"mysql2": "^3.23.1",
+		"prisma": "^7.9.0",
+		"swagger-jsdoc": "^6.3.0",
+		"swagger-ui-express": "^5.0.1",
+		"xlsx": "^0.18.5",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"@types/express": "^5.0.6",
+		"@types/node": "^26.1.1",
+		"tsx": "^4.23.1",
+		"typescript": "^7.0.2"
+	}
+}

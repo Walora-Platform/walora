@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "BillingBatch" ALTER COLUMN "periodFrom" SET DATA TYPE DATE,
+ALTER COLUMN "periodTo" SET DATA TYPE DATE;
+
+-- AlterTable
+ALTER TABLE "Parcel" ALTER COLUMN "pickupDate" SET DATA TYPE DATE,
+ALTER COLUMN "deliveryDate" SET DATA TYPE DATE;

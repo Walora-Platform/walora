@@ -1,0 +1,81 @@
+###
+#   Copyright 2025-2026 Tomáš Bordák
+#
+#   Licensed under the Apache License, Version 2.0.
+#   See the LICENSE file in the project root for details.
+###
+
+services:
+  backend:
+    container_name: g4pl-backend
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: dev
+    env_file:
+      - .env # injects .env variables to the container (not as a file!)
+    ports:
+      - '8081:80' # exposed for Vite dev. server - DEVELOPMENT ONLY
+    volumes:
+      - ./apps/backend/uploads:/app/apps/backend/uploads
+      - ./apps/backend/scripts:/app/apps/backend/scripts
+      - ./apps/backend/src:/app/apps/backend/src # DEVELOPMENT ONLY
+      - ./shared/prisma:/app/shared/prisma # DEVELOPMENT ONLY
+      - documents_storage:/app/documents # Docker volume that both worker and backend share
+    restart: always
+    networks:
+      - g4pl-network
+
+  database:
+    container_name: g4pl-postgres
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    ports:
+      - '5432:5432' # DEVELOPMENT ONLY
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - g4pl-network
+
+  worker:
+    container_name: g4pl-worker
+    build:
+      context: .
+      dockerfile: apps/worker_bullmq/Dockerfile
+      target: dev
+    env_file:
+      - .env
+    volumes:
+      - ./apps/worker_bullmq/src:/app/apps/worker_bullmq/src # DEVELOPMENT ONLY
+      - ./shared/prisma/schema.prisma:/app/shared/prisma/schema.prisma:ro # DEVELOPMENT ONLY
+      - documents_storage:/app/documents # Docker volume that both worker and backend share
+    restart: always
+    depends_on:
+      - database
+      - redis
+    networks:
+      - g4pl-network
+
+  redis:
+    container_name: g4pl-redis
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - g4pl-network
+
+volumes:
+  postgres_data: # named volume which is stored on host, but not in project folder structure (https://www.geeksforgeeks.org/devops/docker-volume-vs-bind-mount/)
+    name: g4pl-postgres-data
+  redis_data:
+    name: g4pl-redis-data
+  documents_storage:
+    name: g4pl-documents-storage
+
+networks:
+  g4pl-network: # bridge type network by default
+    external: true # manually created network with "docker network create g4pl-network"

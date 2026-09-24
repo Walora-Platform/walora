@@ -1,0 +1,116 @@
+###
+#   Copyright 2025-2026 Tomáš Bordák
+#
+#   Licensed under the Apache License, Version 2.0.
+#   See the LICENSE file in the project root for details.
+###
+
+services:
+  nginx:
+    container_name: nginx
+    image: nginx
+    volumes:
+      - ./nginx/prod.conf:/etc/nginx/nginx.conf:ro # nginx server config
+      - ./certbot/conf:/etc/letsencrypt # certbot SSL certificate from Lets Encrypt (HTTPS)
+      - ./certbot/www:/var/www/certbot # certbot directory
+      - ./apps/hub/dist:/usr/share/nginx/app:ro # IS frontend
+      - ./nest/dist:/usr/share/nginx/nest:ro # NEST frontend
+    ports:
+      - '80:80'
+      - '443:443'
+    networks:
+      - g4pl-network
+    extra_hosts:
+      - 'host.docker.internal:host-gateway' # strapi + next.js applications
+    restart: always
+
+  certbot:
+    container_name: certbot
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt # shared certbot <-> nginx for SSL certificate (HTTPS)
+      - ./certbot/www:/var/www/certbot # shared certbot <-> nginx for SSL certificate (HTTPS)
+    command: >
+      certonly --webroot 
+      -w /var/www/certbot
+      --email ${CERTBOT_EMAIL}
+      --agree-tos
+      --keep-until-expiring
+      --non-interactive
+      --expand
+      -d nest.global4pl.cz 
+      -d app.global4pl.cz
+      -d api.global4pl.cz
+      -d global4pl.cz
+    # --keep-until-expiring -  will not force certificate renewal upon certbot container start / restart
+    # multiple -d DOMAIN -> 1 cert for many domains
+    networks:
+      - g4pl-network
+
+  backend:
+    container_name: g4pl-backend
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: dev
+    env_file:
+      - .env # injects .env variables to the container (not as a file!)
+    volumes:
+      - ./apps/backend/uploads:/app/apps/backend/uploads
+      - ./apps/backend/scripts:/app/apps/backend/scripts
+      - documents_storage:/app/documents # Docker volume that both worker and backend share
+    restart: always
+    depends_on:
+      - database
+    networks:
+      - g4pl-network
+
+  database:
+    container_name: g4pl-postgres
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - g4pl-network
+
+  worker:
+    container_name: g4pl-worker
+    build:
+      context: .
+      dockerfile: apps/worker_bullmq/Dockerfile
+      target: dev
+    env_file:
+      - .env
+    volumes:
+      - documents_storage:/app/documents # Docker volume that both worker and backend share
+    restart: always
+    depends_on:
+      - database
+      - redis
+    networks:
+      - g4pl-network
+
+  redis:
+    container_name: g4pl-redis
+    image: redis:7-alpine
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    restart: always
+    networks:
+      - g4pl-network
+
+volumes:
+  postgres_data: # named volume which is stored on host, but not in project folder structure (https://www.geeksforgeeks.org/devops/docker-volume-vs-bind-mount/)
+    name: g4pl-postgres-data
+  redis_data:
+    name: g4pl-redis-data
+  documents_storage:
+    name: g4pl-documents-storage
+
+networks:
+  g4pl-network: # bridge type network by default
+    external: true # manually created network with "docker network create g4pl-network"
