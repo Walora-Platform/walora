@@ -6,7 +6,7 @@
 ###
 
 #----- 1: BASE - Dependencies -----
-FROM node:20-alpine AS base
+FROM node:26-alpine AS base
 WORKDIR /app
 
 # install pnpm
@@ -42,7 +42,7 @@ CMD pnpm exec prisma generate \
  && pnpm dev
 
 #----- 3: PROD - Production -----
-FROM node:20-alpine AS prod
+FROM node:26-alpine AS prod
 WORKDIR /app
 
 # install pnpm
