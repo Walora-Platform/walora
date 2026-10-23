@@ -18,6 +18,6 @@
 		"prisma:generate": "docker exec -it g4pl-backend pnpm exec prisma generate --schema=../../shared/prisma/schema.prisma",
 		"prisma:studio": "pnpm --filter @g4pl/backend studio",
 		"start": "docker compose -f prod.docker-compose.yml up --build -d",
-		"stop": "docker compose down"
+		"stop": "docker compose -f prod.docker-compose.yml down"
 	}
 }
