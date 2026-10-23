@@ -9,6 +9,9 @@ updates:
       day: monday
     open-pull-requests-limit: 10
     groups:
+      # bullmq gets our own ioredis connection, so both must be on matching versions - always bump together
+      redis-queue:
+        patterns: [bullmq, ioredis]
       # minor + patch bumps land in one PR per week instead of one PR per package
       minor-and-patch:
         update-types: [minor, patch]
