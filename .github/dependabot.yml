@@ -1,0 +1,39 @@
+version: 2
+
+updates:
+  # pnpm workspace - one entry at the root covers apps/* through pnpm-lock.yaml
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 10
+    groups:
+      # minor + patch bumps land in one PR per week instead of one PR per package
+      minor-and-patch:
+        update-types: [minor, patch]
+    # major bumps still come as separate PRs to review one by one
+
+  # Node base images in the backend and worker Dockerfiles
+  - package-ecosystem: docker
+    directories:
+      - /apps/backend
+      - /apps/worker_bullmq
+    schedule:
+      interval: weekly
+      day: monday
+    ignore:
+      # odd Node majors (27, 29, ...) are never LTS - move to the next even major by hand
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+
+  # images in the compose files
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    ignore:
+      # major Postgres upgrades need a dump/restore of the data volume, never auto-bump
+      - dependency-name: postgres
+        update-types: [version-update:semver-major]
