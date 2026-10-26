@@ -38,8 +38,8 @@ importers:
         specifier: ^9.0.3
         version: 9.0.3
       multer:
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.5.0
+        version: 2.5.0
       mysql2:
         specifier: ^3.24.6
         version: 3.24.6(@types/node@26.6.5)
@@ -102,8 +102,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(@vue/devtools-api@8.2.1)(typescript@7.0.2)(vue@3.5.44(typescript@7.0.2))
       primevue:
-        specifier: ^5.0.3
-        version: 5.0.3(vue@3.5.44(typescript@7.0.2))
+        specifier: ^5.0.4
+        version: 5.0.4(vue@3.5.44(typescript@7.0.2))
       uuid:
         specifier: ^14.0.3
         version: 14.0.3
@@ -600,13 +600,13 @@ packages:
     resolution: {integrity: sha512-UyFtnzxHfG7UqbOqUsjMXpe96h36eDre9Iw+zkZuJHsplHdoXNWgovDkoGZNxw4V5ZUHP1Y3pIu0kJw0OhmT0g==}
     engines: {node: '>=12.11.0'}
 
-  '@primevue/core@5.0.3':
-    resolution: {integrity: sha512-ixXNAm+ZucyIJLXIdysiVgiuSbdC/X033g8IbYDXKPM3A8P+xJmwUBf7LUmALQSxNyJshrOOQrUg6Q8x9YbTEg==}
+  '@primevue/core@5.0.4':
+    resolution: {integrity: sha512-EK2te4t5VaCAPddRo47z3quBwFPK0Xf/f0Lk7EGXa3u+lXy63WI4JV2tYjtPoONTD4ulsrtyUOD0iopWh8GicQ==}
     peerDependencies:
       vue: ^3.5.0
 
-  '@primevue/icons@5.0.3':
-    resolution: {integrity: sha512-oCLPneUC4tDGNAgknDp/bePbmdOwT7lv/r0ti2vllrGSYmx4H8Ur3wli0IQv3LoAZSTwnbBGYNI0LWZgnOpIvQ==}
+  '@primevue/icons@5.0.4':
+    resolution: {integrity: sha512-ImyUXU8kztbBQwZPjMYDRsMV3kpw+a16JKTViZp9tZNpKWod83yUDbGg5TApxfu62o089QwCONMl5BHfb28eYA==}
 
   '@prisma/adapter-pg@7.10.1':
     resolution: {integrity: sha512-EP9ruPYHjKP80WZlb5qVaEXKgZjJieBFjAxcBtQnDAHD6+16UN4keVmBh6L/RUpuDQT2FQRbvKNgq5d4Ix+IkQ==}
@@ -2851,8 +2851,8 @@ packages:
   muggle-string@0.4.1:
     resolution: {integrity: sha512-VNTrAak/KhO2i8dqqnqnAHOa3cYBwXEZe9h+D5h/1ZqFSTEFHdM65lR7RoIqq3tBBYavsOXV84NoHXZ0AkPyqQ==}
 
-  multer@2.4.0:
-    resolution: {integrity: sha512-7dqa0ZcFfzbefdTuIkzOSMvZWC0J7FLqBOjJUZvDCXShIURWKxAyTT1wHhnE5q19c7jOJf43IYYKjBmZVZmvhg==}
+  multer@2.5.0:
+    resolution: {integrity: sha512-BsqOzYGVq49JcW2IzoSAxeKYRevb+dGGPPWleOR8Lrlk4igwxu1/9pwSXlByhCb7MVZDrNJFC0IBP5/O5nLYRw==}
     engines: {node: '>= 10.16.0'}
 
   murmurhash-js@1.0.0:
@@ -3086,8 +3086,8 @@ packages:
   potpack@2.1.0:
     resolution: {integrity: sha512-pcaShQc1Shq0y+E7GqJqvZj8DTthWV1KeHGdi0Z6IAin2Oi3JnLCOfwnCo84qc+HAp52wT9nK9H7FAJp5a44GQ==}
 
-  primevue@5.0.3:
-    resolution: {integrity: sha512-E8urvyWFlKBP0MD5FVNtOkspCDl+pZgf5sZ1Zvw0t+a41EtTaUW3pC+TeolwklHVLCNKF+SN4vZ5tCxTJCO4Yw==}
+  primevue@5.0.4:
+    resolution: {integrity: sha512-Tqi45bj2eQMZ47dGeKnSPzSSm9BX+cgkKaLQOk9ScFLYIHg/yOHRCLPz9rw3e9eA/uz2e6ll5dtV9yWUVQoRBw==}
 
   prisma@7.10.1:
     resolution: {integrity: sha512-GoVeErHGGtsSjsflQ1r2BA3RKTXtxNraQJz8OLkLhoLr7OgCscdx4qw4WMM4HnERYc+a1cq2VnMNbep+vOjNcQ==}
@@ -4119,17 +4119,17 @@ snapshots:
 
   '@primeuix/utils@0.8.3': {}
 
-  '@primevue/core@5.0.3(vue@3.5.44(typescript@7.0.2))':
+  '@primevue/core@5.0.4(vue@3.5.44(typescript@7.0.2))':
     dependencies:
       '@primeui/license-manager': 1.1.0
       '@primeuix/styled': 1.2.0
       '@primeuix/utils': 0.8.3
       vue: 3.5.44(typescript@7.0.2)
 
-  '@primevue/icons@5.0.3(vue@3.5.44(typescript@7.0.2))':
+  '@primevue/icons@5.0.4(vue@3.5.44(typescript@7.0.2))':
     dependencies:
       '@primeuix/utils': 0.8.3
-      '@primevue/core': 5.0.3(vue@3.5.44(typescript@7.0.2))
+      '@primevue/core': 5.0.4(vue@3.5.44(typescript@7.0.2))
     transitivePeerDependencies:
       - vue
 
@@ -6573,7 +6573,7 @@ snapshots:
 
   muggle-string@0.4.1: {}
 
-  multer@2.4.0:
+  multer@2.5.0:
     dependencies:
       append-field: 1.0.0
       busboy: 1.6.0
@@ -6791,7 +6791,7 @@ snapshots:
 
   potpack@2.1.0: {}
 
-  primevue@5.0.3(vue@3.5.44(typescript@7.0.2)):
+  primevue@5.0.4(vue@3.5.44(typescript@7.0.2)):
     dependencies:
       '@primeicons/vue': 8.0.2(vue@3.5.44(typescript@7.0.2))
       '@primeui/license-manager': 1.1.0
@@ -6799,8 +6799,8 @@ snapshots:
       '@primeuix/styled': 1.2.0
       '@primeuix/styles': 3.1.0
       '@primeuix/utils': 0.8.3
-      '@primevue/core': 5.0.3(vue@3.5.44(typescript@7.0.2))
-      '@primevue/icons': 5.0.3(vue@3.5.44(typescript@7.0.2))
+      '@primevue/core': 5.0.4(vue@3.5.44(typescript@7.0.2))
+      '@primevue/icons': 5.0.4(vue@3.5.44(typescript@7.0.2))
     transitivePeerDependencies:
       - vue
 
